@@ -468,10 +468,15 @@ export class window
             }
         }
 
-        void set_phase(phase* renderer, input::keyboard_handler* keyboard_handler = nullptr, input::controller_handler* controller_handler = nullptr) {
+        void set_phase(phase* renderer,
+            input::keyboard_handler* keyboard_handler = nullptr,
+            input::controller_handler* controller_handler = nullptr,
+            input::mouse_handler* mouse_handler = nullptr)
+        {
             current_renderer.reset(renderer);
 
             this->keyboard_handler = keyboard_handler;
+            this->mouse_handler = mouse_handler;
             this->controller_handler = controller_handler;
             if(controller_handler) {
                 for(auto& [id, controller] : controllers) {
@@ -505,6 +510,7 @@ export class window
 
         std::unique_ptr<phase> current_renderer;
         input::keyboard_handler* keyboard_handler;
+        input::mouse_handler* mouse_handler;
         input::controller_handler* controller_handler;
 
         sdl::unique_window win;
@@ -1039,6 +1045,18 @@ export class window
                     case sdl::EventType::SDL_KEYUP:
                         if(keyboard_handler)
                             keyboard_handler->key_up(event.key.keysym);
+                        break;
+                    case sdl::EventType::SDL_MOUSEMOTION:
+                        if(mouse_handler)
+                            mouse_handler->mouse_move(event.motion.x, event.motion.y, event.motion.xrel, event.motion.yrel);
+                        break;
+                    case sdl::EventType::SDL_MOUSEBUTTONDOWN:
+                        if(mouse_handler)
+                            mouse_handler->mouse_button_down(event.button.button, event.button.clicks, event.button.x, event.button.y);
+                        break;
+                    case sdl::EventType::SDL_MOUSEBUTTONUP:
+                        if(mouse_handler)
+                            mouse_handler->mouse_button_up(event.button.button, event.button.clicks, event.button.x, event.button.y);
                         break;
                     case sdl::EventType::SDL_CONTROLLERBUTTONDOWN:
                         if(controller_handler)
