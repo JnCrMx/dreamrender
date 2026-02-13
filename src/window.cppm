@@ -120,6 +120,9 @@ export struct window_config {
     vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
 
     bool workaround_no_swapchain = false;
+
+    std::vector<std::string> additional_instance_extensions;
+    std::vector<std::string> additional_device_extensions;
 };
 
 static std::filesystem::path get_cache_dir() {
@@ -662,6 +665,9 @@ export class window
                 sdl::vk::GetInstanceExtensions(win.get(), &sdlExtensionCount, sdlExtensions.data());
                 std::ranges::copy(sdlExtensions, std::back_inserter(extensions));
             }
+            std::ranges::transform(config.additional_instance_extensions, std::back_inserter(extensions), [](const std::string& s){
+                return s.c_str();
+            });
 
             spdlog::debug("Using extensions: {}", fmt::join(extensions, ", "));
 
@@ -838,11 +844,15 @@ export class window
                 VK_KHR_MAINTENANCE3_EXTENSION_NAME,
             };
             if(vulkan12Features.descriptorBindingPartiallyBound) {
-                deviceExtensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+                deviceExtensions.push_back(vk::EXTDescriptorIndexingExtensionName);
             }
             if(!config.headless && !config.workaround_no_swapchain) {
-                deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+                deviceExtensions.push_back(vk::KHRSwapchainExtensionName);
             }
+            std::ranges::transform(config.additional_device_extensions, std::back_inserter(deviceExtensions), [](const std::string& s){
+                return s.c_str();
+            });
+
             vk::DeviceCreateInfo device_info = vk::DeviceCreateInfo()
                 .setQueueCreateInfos(queueInfos)
                 .setPEnabledLayerNames(layers)

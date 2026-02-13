@@ -6,6 +6,7 @@ set(EXAMPLES
   transparency
   simple_renderer
   input
+  additional_extensions
 )
 
 foreach(EXAMPLE ${EXAMPLES})
